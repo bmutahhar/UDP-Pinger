@@ -1,4 +1,4 @@
-package udp_server;
+package udp_pinger;
 import java.io.*;
 import java.net.*;
 import java.util.*;

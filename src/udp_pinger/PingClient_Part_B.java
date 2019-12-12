@@ -1,15 +1,15 @@
-package udp_server;
-
+package udp_pinger;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Array;
+import java.io.InputStreamReader;;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /*
  * Client to generate a ping requests over UDP.
@@ -37,8 +37,10 @@ public class PingClient_Part_B {
         DatagramSocket socket = new DatagramSocket();
 
         int sequence_number = 0;
-        long rtt = 0;
+        long rtt = 0; //Calculates the round trip time
         RTT_Array = new long[10];
+        Timer timer = new Timer(); //Timer object to send each ping after exactly 1 sec
+        TimerTask timerTask;
         // Processing loop.
         while (sequence_number < 10) {
             // Timestamp in ms when we send it
@@ -50,9 +52,19 @@ public class PingClient_Part_B {
             buffer = str.getBytes();
             // Create a datagram packet to send as an UDP packet.
             DatagramPacket ping = new DatagramPacket(buffer, buffer.length, server, port);
+            timerTask = new TimerTask() {	//Timer Task object to actually send the ping
+                @Override
+                public void run() {
+                    // Send the Ping datagram to the specified server
+                    try {
+                        socket.send(ping);
+                    } catch (IOException e) {
+                        System.out.println(e.toString());;
+                    }
+                }
+            };
+            timer.schedule(timerTask,1000);		//Time Scheduler to send ping after 1 second
 
-            // Send the Ping datagram to the specified server
-            socket.send(ping);
             // Try to receive the packet - but it can fail (timeout)
             try {
                 // Set up the timeout 1000 ms = 1 sec
@@ -77,6 +89,7 @@ public class PingClient_Part_B {
             // next packet
             sequence_number++;
         }
+        timer.cancel();
         //Prints the Statistics just like standard ping program
         printStatistics();
     }
